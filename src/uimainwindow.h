@@ -32,6 +32,7 @@ class UiMainWindow : public Gtk::Window
     // mainbar-items
     Gtk::ToolButton btn_settings;
     Gtk::ToolButton btn_export;
+    Gtk::ToolButton btn_bpm_scan;
     
     // notebook-items
     UiGmbrc  ui_gmbrc;
@@ -51,8 +52,10 @@ protected:
     bool slot_app_quit(GdkEventAny* event);
     
     // ui-btn-slots
+    void on_btn_bpm_scan();
     void on_btn_settings();
     void on_btn_export();
+    
     
     // notebook
     void on_notebook_switch_page(Gtk::Widget* page, guint page_num);

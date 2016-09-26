@@ -1,8 +1,10 @@
 #include "uimainwindow.h"
 #include "uigmbrc.h"
 #include "libquasd/file.h"
+#include "uiprogressdialog.h"
 
 #include <iostream>
+#include <thread>
 
 UiMainWindow::UiMainWindow()
 {
@@ -15,15 +17,13 @@ UiMainWindow::UiMainWindow()
 		init_gui_gmbrc();
 	}
 
-//	if (settings.get_section_value("general", "crate_pls") == "on")
-//	{
-//		init_gui_playlists();
-//	}
-
-	if (settings.get_section_value("general", "crate_audiofiles") == "on")
-	{
-		init_gui_crates();
-	}
+	init_gui_crates();
+	
+	std::cout << "###########################################" << std::endl;
+	std::cout << "Total files: " << ptr_xdb->get_total_af() << std::endl;
+	std::cout << "No BPM     : " << ptr_xdb->get_no_bpm_count() << std::endl;
+	std::cout << "###########################################" << std::endl;
+	//std::cout << "Missing    : " << ptr_xdb->get_missing_af_count() << std::endl;
 
 	// app quit
 	signal_delete_event().connect(sigc::mem_fun(*this,
@@ -44,6 +44,9 @@ void UiMainWindow::init_gui()
     btn_export.set_stock_id(Gtk::Stock::PROPERTIES);
     btn_export.set_label("Export");
     mainbar.append(btn_export, sigc::mem_fun(*this, &UiMainWindow::on_btn_export));
+    btn_bpm_scan.set_stock_id(Gtk::Stock::EXECUTE);
+    btn_bpm_scan.set_label("BPM Scan");
+    mainbar.append(btn_bpm_scan, sigc::mem_fun(*this, &UiMainWindow::on_btn_bpm_scan));
 
 		// notebook
 		notebook.append_page(ui_crates, "Crates");
@@ -169,9 +172,6 @@ UiMainWindow::init_gui_crates()
 	}
 }
 
-
-
-
 bool
 UiMainWindow::slot_app_quit(GdkEventAny* event)
 {
@@ -213,6 +213,28 @@ UiMainWindow::on_btn_export()
 		<< "export done."
 		<< std::endl;
 }
+
+void
+UiMainWindow::on_btn_bpm_scan()
+{
+	btn_bpm_scan.set_sensitive(false);
+	auto ScanThead = new std::thread(
+		[this]
+		{
+			ptr_xdb->scan_bpm();
+		}
+	);
+	
+	UiProgressDialog dlg;
+	dlg.set_title("BPM Scan");
+	dlg.set_size_request(800,600);
+	ptr_xdb->signal_new_bpmscan.connect(sigc::mem_fun(&dlg, &UiProgressDialog::update_ui));
+	ScanThead->detach();
+	dlg.run();
+	ptr_xdb->abort_bpmscan();	
+	btn_bpm_scan.set_sensitive(true);
+}
+
 
 void
 UiMainWindow::on_notebook_switch_page(Gtk::Widget* page, guint page_num)

@@ -8,6 +8,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 #include <iosfwd>
+#include <sstream>
 
 using namespace xwaxdb;
 
@@ -40,9 +41,11 @@ db_crates::append_af(const std::string& af)
 				<< af
 				<< std::endl;
 			
-			v_af_notfound.push_back(id_af);
+			set_af_notfound.insert(id_af);
 		}
 	}
+		
+	check_bpm(mTags["bpm"], id_af);
 	
 	mTags["filepath"] = af;
 	map_id_afdata.insert(std::make_pair(id_af, mTags));
@@ -63,11 +66,94 @@ db_crates::append_afdata(const std::string& af,
 		return 0;
 	}
 	
+	check_bpm(dat["bpm"], id_af);
+		
 	if ( dat["filepath"].empty() )
 		dat["filepath"] = af;
 
 	map_id_afdata.insert(std::make_pair(id_af, dat));
 	return id_af;
+}
+
+void
+db_crates::scan_bpm()
+{
+	std::string strExec1 = "bpm-tag -f \"";
+	std::string strExec2 = "\" 2> /tmp/bpm-tag.resp";
+	
+	std::vector<unsigned int> vScanned;
+	int tracksTotal  = set_no_bpm.size();
+	int currentTrack = 0;
+	for (const auto Afid : set_no_bpm)
+	{
+		if ( b_abort_bpmscan ) break;
+		currentTrack++;
+		
+		std::string afPath = get_af_data(Afid)["filepath"];
+		double Fraction = double(currentTrack) / tracksTotal;
+		std::stringstream ssMsg;
+		ssMsg << currentTrack << '/' << tracksTotal << ": " << afPath << std::endl;
+		std::string Msg = ssMsg.str();
+		std::cout << Msg;
+		
+		signal_new_bpmscan.emit(Fraction, Msg);
+		
+		std::stringstream ssExec;
+		ssExec << strExec1 << afPath << strExec2;
+		int status = std::system(ssExec.str().c_str());
+		if ( status == 0 )
+		{
+			std::ifstream F("/tmp/bpm-tag.resp");
+			std::stringstream ssBpm;
+			ssBpm << F.rdbuf();
+			std::string Bpm = parse_bpmtag_resp(ssBpm.str());
+			
+			if ( !Bpm.empty() )
+			{
+				map_id_afdata[Afid]["bpm"] = Bpm; // write to db
+				vScanned.push_back(Afid);
+			}
+		}
+	}
+	
+	std::cout << "Info:" << __PRETTY_FUNCTION__ << ":"
+		<< vScanned.size() << " files bpm-tagged."
+		<< std::endl;
+	for (const auto Afid : vScanned)
+	{
+		set_no_bpm.erase(Afid);
+	}
+	
+	b_abort_bpmscan = false;
+}
+
+std::string
+db_crates::parse_bpmtag_resp(const std::string& resp)
+{
+	std::string strRet{""};
+	std::size_t Pos1 = resp.find_first_of(':');
+	if ( Pos1 != std::string::npos )
+	{
+		strRet = resp.substr(Pos1+2);
+		std::size_t Pos2 = strRet.find_first_of('B');
+		if ( Pos2 != std::string::npos )
+		{
+			strRet = strRet.substr(0, Pos2-1);
+		}
+	}
+	return strRet;
+}
+
+void
+db_crates::check_bpm(std::string& bpm, const unsigned int id_af)
+{
+	if ( !bpm.empty() )
+		std::replace( bpm.begin(), bpm.end(), ',', '.');
+	
+	if ( bpm.empty() || bpm == "0" )
+	{
+		set_no_bpm.insert( id_af );
+	}	
 }
 
 bool
@@ -79,7 +165,6 @@ db_crates::is_in_db(const std::string& af)
 	else
 		return false;
 }
-
 
 std::string
 db_crates::get_unique_cratename(const std::string& name,
@@ -266,6 +351,8 @@ db_crates::parse_xwaxdb_line(const std::string& line)
     M["bpm"]       = vToken[6];
     M["rating"]    = vToken[7];
     M["publisher"] = vToken[8];
+		
+		check_bpm(M["bpm"], Id);
     
 		map_id_afdata.insert(std::make_pair(Id, M));
 		

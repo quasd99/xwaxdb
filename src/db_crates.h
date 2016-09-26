@@ -10,6 +10,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <gtkmm-3.0/gtkmm.h>
+
 namespace xwaxdb
 {
  
@@ -30,20 +32,22 @@ class db_crates
   std::unordered_map<unsigned int,
     std::unordered_map<std::string, std::string> >map_id_afdata; // id, af-data
   
-  std::vector<std::string> v_no_bpm;
+  std::unordered_set<unsigned int> set_no_bpm;
+  std::unordered_set<unsigned int> set_af_notfound;
   
   quasd::tagtool tag_parser;
   std::vector<std::string> v_common_tags{"artist", "album", "title", "year",
                                          "rating", "publisher", "bpm"};
 
-  std::vector<unsigned int> v_af_notfound;
-
   unsigned int id_af = 0; // actual, highest audiofile-id
   bool b_append_cratetype = false; // add cratetype to name_uniq
   bool b_check_bpm = false;        // scan bpm during crate-scan
+  bool b_abort_bpmscan = false;
 public:
   db_crates();
   
+  
+  void abort_bpmscan() { b_abort_bpmscan = true; };
   /**
    * @brief Add an audiofile-path to the db. The tags of the audiofile will be
    * parsed. Returns the new id for the audiofile.
@@ -121,6 +125,9 @@ public:
    */
   std::string get_unique_cratename(const std::string& name, const std::string& type);
   
+  int get_no_bpm_count() { return set_no_bpm.size(); };
+  int get_missing_af_count() { return set_af_notfound.size(); };
+  
   bool is_new_crate(const std::string& name, const std::string& type);
     
   void set_path_application(const std::string& p) { str_path_application = p; };
@@ -131,7 +138,13 @@ public:
   
   int get_total_af();
   bool is_in_db(const std::string& af);
-
+  
+  /**
+   * @brief Check if bpm-tag is properly set. If not add af_id to set_no_bpm
+   * @param bpm
+   */
+  void check_bpm(std::string& bpm, const unsigned int id_af);
+  
   /**
    * @brief Read the xwax.db-file, write the audiofile-information to v_tracks 
    * and save all audiofilepaths in unordered_set set_unique_filepaths.
@@ -146,6 +159,11 @@ public:
    * and write it to umap_cratenames
    */
   void read_crates_db();
+  
+  /**
+   * @brief Sytem-Execute `bpm-tag -f %FILE%` for all files in set_no_bpm
+   */
+  void scan_bpm();
 
   /**
    * @brief Use true to append the crate-type to the xwax-cratename
@@ -154,6 +172,9 @@ public:
   void set_append_cratetype(bool b) { b_append_cratetype = b; };
   
   void set_check_bpm(bool b) { b_check_bpm = b; };
+  
+  sigc::signal<void, double, std::string> signal_new_bpmscan;
+  //sigc::signal<void, double> signal_new_bpmscan;
   
   /**
    * @brief Write all audiofile-informations in v_tracks to xwax.db-file.
@@ -177,6 +198,7 @@ private:
   void parse_xwaxdb_line(const std::string& line);
   void parse_cratedb_line(const std::string& line);
   std::vector<unsigned int> parse_cratedb_afid(const std::string& tok);
+  std::string parse_bpmtag_resp(const std::string& resp);
   
   /**
    * @brief Returns true if name is not already used (umap_cratename)

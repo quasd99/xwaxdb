@@ -1,7 +1,5 @@
 #include "src/global.h"
 #include "src/crate_gmbrc.h"
-#include "libquasd/gmbrcplaylistexporter.h"
-
 
 #include <iostream>
 #include <fstream>

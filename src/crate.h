@@ -9,7 +9,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "libquasd/gmbrcplaylistexporter.h"
 #include "libquasd/tagtool.h"
 #include "src/global.h"
 
