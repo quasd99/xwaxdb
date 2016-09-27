@@ -2,6 +2,7 @@
 #include "uigmbrc.h"
 #include "libquasd/file.h"
 #include "uiprogressdialog.h"
+#include "uisettingsdialog.h"
 
 #include <iostream>
 #include <thread>
@@ -38,7 +39,7 @@ void UiMainWindow::init_gui()
     
     // toolbar
     mainbar.set_toolbar_style(Gtk::ToolbarStyle::TOOLBAR_BOTH);
-    btn_settings.set_stock_id(Gtk::Stock::PROPERTIES);
+    btn_settings.set_stock_id(Gtk::Stock::PREFERENCES);
     btn_settings.set_label("Settings");
     mainbar.append(btn_settings, sigc::mem_fun(*this, &UiMainWindow::on_btn_settings));
     btn_export.set_stock_id(Gtk::Stock::PROPERTIES);
@@ -201,6 +202,41 @@ UiMainWindow::slot_app_quit(GdkEventAny* event)
 void
 UiMainWindow::on_btn_settings()
 {
+	auto builder = Gtk::Builder::create();
+	try
+	{
+			builder->add_from_file("src/uisettingsdialog.ui");
+	}
+	catch(const Glib::FileError& ex)
+	{
+			std::cerr << "  FileError: " << ex.what() << std::endl;
+			return;
+	}
+	catch(const Glib::MarkupError& ex)
+	{
+			std::cerr << "  MarkupError: " << ex.what() << std::endl;
+			return;
+	}
+	catch(const Gtk::BuilderError& ex)
+	{
+			std::cerr << "  BuilderError: " << ex.what() << std::endl;
+			return;
+	}
+
+	UiSettingsDialog *dlg = nullptr;
+	builder->get_widget_derived("dlg_settings", dlg);
+	if ( dlg )
+	{
+		dlg->exec();
+	}
+	else
+	{
+		std::cerr << "ERR:" << __PRETTY_FUNCTION__
+			<< ":cannot exec settings dialog"
+			<< std::endl;
+	}
+    
+	delete dlg;
 }
 
 void
