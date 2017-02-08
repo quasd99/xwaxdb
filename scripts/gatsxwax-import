@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# Audio import handler for xwax
+#
+# This script takes an output sample rate and filename as arguments,
+# and outputs signed, little-endian, 16-bit, 2 channel audio on
+# standard output. Errors to standard error.
+#
+# since ffmpeg is not supported in Ubuntu 14.04 i adjusted it.
+#  -gats
+#
+# external:
+# sudo apt-get install flac faad cdparanoia vorbis-tools 
+
+FILE="$1"
+RATE="$2"
+
+echo "$*" > /tmp/aufruf
+
+function getfilesuffix() {
+	echo ${1##*.} | tr [:upper:] [:lower:] 
+}
+
+suffix=$(getfilesuffix "$FILE")
+
+case $suffix in
+
+cdaudio)
+	echo "Calling CD extract..." >&2
+	cdparanoia -r $(cat "$FILE") 2> /dev/null
+	;;
+
+mp3)
+	echo "Calling MP3 decoder..." >&2
+	mpg123 -q -s --rate "$RATE" --stereo "$FILE" 2> /dev/null
+	;;
+
+flac)
+	echo "Calling FLAC decoder..." >&2
+	flac -d -c "$FILE"  2> /dev/null
+	;;
+
+mp4|m4a|aac)
+	echo "Calling faad decoder..." >&2
+	faad -w -q -s "$RATE" "$FILE"  2> /dev/null
+	;;
+	
+ogg|oga)
+	echo "Calling ogg-vorbis decoder..." >&2
+	oggdec -R -e 1 -b 16 -o /dev/stdout -<"$FILE" 2> /dev/null
+	;;
+
+wma)
+	echo "calling mplayer to decode wma..." >&2
+	avconv -i "$FILE" -ar $RATE -ac 2 -f wav -
+	;;
+
+*)
+	echo "Calling fallback decoder..." >&2
+	# TODO
+	;;
+
+esac
+
