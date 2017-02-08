@@ -196,7 +196,7 @@ db_crates::read_xwax_db()
 {
   std::string Path = str_path_application + '/' + str_dbfile;
   std::ifstream F(Path);
-  if (!F) 
+  if ( !F ) 
 	{
       std::cerr << "ERR:" << __PRETTY_FUNCTION__
         << ":cannot open:"
@@ -378,7 +378,7 @@ db_crates::write_crates_db()
 {
   std::string Path = str_path_application + "/crates.db";
   std::ofstream F(Path);
-  if (!F) 
+  if ( !F ) 
   {
     std::cerr << "ERR:" << __PRETTY_FUNCTION__
       << ":cannot open:"
@@ -460,7 +460,7 @@ db_crates::write_dbfiles()
 	{
 		std::string Path = PathDbFiles + Crate.name_uniq + ".xwaxdb";
 		std::ofstream F(Path);
-		if (!F)
+		if ( !F )
 		{
 			std::cerr << "ERR:" << __PRETTY_FUNCTION__
 				<< ":cannot create:"
@@ -489,10 +489,10 @@ db_crates::write_dbfiles()
 void
 db_crates::write_lparams_file()
 {
-  std::string Path = str_path_application + "/xwax_lparam.lst";
+  std::string Path = str_path_application + "/xwax_lparams.lst";
   std::ofstream F(Path);
 	
-  if (!F) 
+  if ( !F ) 
   {
     std::cerr << "ERR:" << __PRETTY_FUNCTION__
       << ":cannot open:"

@@ -6,7 +6,7 @@ using namespace xwaxdb;
  
 crate_audiofiles::crate_audiofiles()
 {
-    v_ext = {".mp3", ".flac", ".ogg", ".m4a", ".wav", ".aiff"};
+  v_ext = {".mp3", ".flac", ".ogg", ".m4a", ".wav", ".aiff"};
 }
 
 std::vector<std::string>

@@ -18,7 +18,7 @@ Launching xwax using the xwaxdb-database can be done like this:
 ```
 XWAXDB_DIR="$HOME/.config/quasd/xwaxdb/"
 LIBRARY_SCANNER="${XWAXDB_DIR}/bin/xwax_libscanner.sh"
-F_XWAXDB_LPARAMS="${XWAXDB_DIR}/xwax_lparam.lst"
+F_XWAXDB_LPARAMS="${XWAXDB_DIR}/xwax_lparams.lst"
 CRATES=""
 
 while read line

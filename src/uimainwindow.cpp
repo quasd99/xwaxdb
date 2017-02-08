@@ -33,39 +33,39 @@ UiMainWindow::UiMainWindow()
 
 void UiMainWindow::init_gui()
 {
-    // window settings
-    set_title("xwax db");
-    set_default_size(800, 600);
-    
-    // toolbar
-    mainbar.set_toolbar_style(Gtk::ToolbarStyle::TOOLBAR_BOTH);
-    btn_settings.set_stock_id(Gtk::Stock::PREFERENCES);
-    btn_settings.set_label("Settings");
-    mainbar.append(btn_settings, sigc::mem_fun(*this, &UiMainWindow::on_btn_settings));
-    btn_export.set_stock_id(Gtk::Stock::PROPERTIES);
-    btn_export.set_label("Export");
-    mainbar.append(btn_export, sigc::mem_fun(*this, &UiMainWindow::on_btn_export));
-    btn_bpm_scan.set_stock_id(Gtk::Stock::EXECUTE);
-    btn_bpm_scan.set_label("BPM Scan");
-    mainbar.append(btn_bpm_scan, sigc::mem_fun(*this, &UiMainWindow::on_btn_bpm_scan));
+  // window settings
+  set_title("xwax db");
+  set_default_size(800, 600);
 
-		// notebook
-		notebook.append_page(ui_crates, "Crates");
-    if (settings.get_section_value("general",  "crate_gmbrc") == "on")
-    {
-			notebook.append_page(ui_gmbrc, "Gmbrc Playlists");
-    }
-    notebook.signal_switch_page().connect(sigc::mem_fun(*this,
-              &UiMainWindow::on_notebook_switch_page));
-    
-    //main vertical box container
-    vbox.set_orientation(Gtk::ORIENTATION_VERTICAL);
-    vbox.pack_start (mainbar, Gtk::PACK_SHRINK, 0);
-    vbox.pack_start(notebook,  Gtk::PACK_EXPAND_WIDGET, 0);
-    
-    // add & show
-    add(vbox);
-    show_all();
+  // toolbar
+  mainbar.set_toolbar_style(Gtk::ToolbarStyle::TOOLBAR_BOTH);
+  btn_settings.set_stock_id(Gtk::Stock::PREFERENCES);
+  btn_settings.set_label("Settings");
+  mainbar.append(btn_settings, sigc::mem_fun(*this, &UiMainWindow::on_btn_settings));
+  btn_export.set_stock_id(Gtk::Stock::PROPERTIES);
+  btn_export.set_label("Export");
+  mainbar.append(btn_export, sigc::mem_fun(*this, &UiMainWindow::on_btn_export));
+  btn_bpm_scan.set_stock_id(Gtk::Stock::EXECUTE);
+  btn_bpm_scan.set_label("BPM Scan");
+  mainbar.append(btn_bpm_scan, sigc::mem_fun(*this, &UiMainWindow::on_btn_bpm_scan));
+
+  // notebook
+  notebook.append_page(ui_crates, "Crates");
+  if (settings.get_section_value("general",  "crate_gmbrc") == "on")
+  {
+    notebook.append_page(ui_gmbrc, "Gmbrc Playlists");
+  }
+  notebook.signal_switch_page().connect(sigc::mem_fun(*this,
+            &UiMainWindow::on_notebook_switch_page));
+
+  //main vertical box container
+  vbox.set_orientation(Gtk::ORIENTATION_VERTICAL);
+  vbox.pack_start (mainbar, Gtk::PACK_SHRINK, 0);
+  vbox.pack_start(notebook,  Gtk::PACK_EXPAND_WIDGET, 0);
+
+  // add & show
+  add(vbox);
+  show_all();
 }
 
 bool
@@ -209,18 +209,18 @@ UiMainWindow::on_btn_settings()
 	}
 	catch(const Glib::FileError& ex)
 	{
-			std::cerr << "  FileError: " << ex.what() << std::endl;
-			return;
+    std::cerr << "  FileError: " << ex.what() << std::endl;
+    return;
 	}
 	catch(const Glib::MarkupError& ex)
 	{
-			std::cerr << "  MarkupError: " << ex.what() << std::endl;
-			return;
+    std::cerr << "  MarkupError: " << ex.what() << std::endl;
+    return;
 	}
 	catch(const Gtk::BuilderError& ex)
 	{
-			std::cerr << "  BuilderError: " << ex.what() << std::endl;
-			return;
+    std::cerr << "  BuilderError: " << ex.what() << std::endl;
+    return;
 	}
 
 	UiSettingsDialog *dlg = nullptr;
@@ -277,9 +277,9 @@ UiMainWindow::on_btn_bpm_scan()
 void
 UiMainWindow::on_notebook_switch_page(Gtk::Widget* page, guint page_num)
 {
-    std::cout << "Info:" << __PRETTY_FUNCTION__ 
-              << "page:" << page_num
-              << std::endl;
+  std::cout << "Info:" << __PRETTY_FUNCTION__ 
+            << "page:" << page_num
+            << std::endl;
 }
 
 

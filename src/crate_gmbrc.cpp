@@ -72,7 +72,7 @@ crate_gmbrc::scan_selected_pls(const std::vector<std::string>& v_pls)
 void
 crate_gmbrc::use_gmbrc_stdpath()
 {
-    gt.use_gmbrc_stdpath();
+  gt.use_gmbrc_stdpath();
 }
 
 void
@@ -81,7 +81,8 @@ crate_gmbrc::read_pls_selected()
 	std::string Path = ptr_xdb->get_path_application() + '/' 
 		+ str_filename_pls_selection;
 	std::ifstream F(Path);
-	if (!F) {
+	if ( !F )
+  {
 		std::cerr << "ERR:" << __PRETTY_FUNCTION__
 						<< ":cannot open:"
 						<< Path

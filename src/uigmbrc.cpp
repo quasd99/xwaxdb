@@ -6,14 +6,8 @@
 
 UiGmbrc::UiGmbrc()
 {
-    init_gui();
+  init_gui();
 }
-
-//void
-//UiGmbrc::init()
-//{
-//    // called by UiMainWindow to initialize
-//}
 
 void
 UiGmbrc::init_gui()
@@ -66,17 +60,17 @@ UiGmbrc::init_gui()
 void
 UiGmbrc::append_pls_to_lvt_all(const std::string& pls)
 {
-    guint row_number = lvt_all.append();
-    lvt_all.set_text(row_number, 0, pls);
-		b_sel_changed = true;
+  guint row_number = lvt_all.append();
+  lvt_all.set_text(row_number, 0, pls);
+  b_sel_changed = true;
 }
 
 void
 UiGmbrc::append_pls_to_lvt_selected(const std::string& pls)
 {
-    guint row_number = lvt_selected.append();
-    lvt_selected.set_text(row_number, 0, pls);
-		b_sel_changed = true;
+  guint row_number = lvt_selected.append();
+  lvt_selected.set_text(row_number, 0, pls);
+  b_sel_changed = true;
 }
 
 std::vector<std::string>
@@ -116,57 +110,57 @@ UiGmbrc::on_btn_add_all()
 void
 UiGmbrc::on_btn_add_pls()
 {
-    std::cout << "Info:" << __PRETTY_FUNCTION__ << std::endl;
-        
-    std::string strPlsTitle;
-    std::vector<Gtk::TreeModel::RowReference> Rows;
-    auto refModel = lvt_all.get_model();
-    auto refListStore = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(refModel);
-    auto Selection = lvt_all.get_selection();
-    
-    for (auto Rowpath : Selection->get_selected_rows())
-    {
-			// get pls-title and add it to lvt_selected
-			Gtk::TreeModel::iterator iter = refModel->get_iter(Rowpath);
-			(*iter).get_value(0, strPlsTitle);
-			lvt_selected.append(strPlsTitle);
-			set_pls_added.insert(strPlsTitle);
+  std::cout << "Info:" << __PRETTY_FUNCTION__ << std::endl;
 
-			// save row reference
-			Rows.emplace_back(Gtk::TreeModel::RowReference(refModel, Rowpath));
-    }
-    
-    // remove the row-references from treemodel
-    for (auto &Iter : Rows)
+  std::string strPlsTitle;
+  std::vector<Gtk::TreeModel::RowReference> Rows;
+  auto refModel = lvt_all.get_model();
+  auto refListStore = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(refModel);
+  auto Selection = lvt_all.get_selection();
+
+  for (auto Rowpath : Selection->get_selected_rows())
+  {
+    // get pls-title and add it to lvt_selected
+    Gtk::TreeModel::iterator iter = refModel->get_iter(Rowpath);
+    (*iter).get_value(0, strPlsTitle);
+    lvt_selected.append(strPlsTitle);
+    set_pls_added.insert(strPlsTitle);
+
+    // save row reference
+    Rows.emplace_back(Gtk::TreeModel::RowReference(refModel, Rowpath));
+  }
+
+  // remove the row-references from treemodel
+  for (auto &Iter : Rows)
+  {
+    auto treeIter = refModel->get_iter(Iter.get_path());
+    if ( treeIter )
     {
-			auto treeIter = refModel->get_iter(Iter.get_path());
-			if ( treeIter )
-			{
-				refListStore->erase(treeIter);
-			}   
-    }
-    
-		b_sel_changed = true;
+      refListStore->erase(treeIter);
+    }   
+  }
+
+  b_sel_changed = true;
 }
 
 void
 UiGmbrc::on_btn_remove_all()
 {
-    std::cout << "Info:" << __PRETTY_FUNCTION__ << std::endl;
-    
-    // copy all playlists from lvt_selected to lvr_all
-    std::string strPlsTitle;
-    for (const auto Row : lvt_selected.get_model()->children())
-    {
-        (*Row).get_value(0, strPlsTitle);
-        lvt_all.append(strPlsTitle);
-				set_pls_removed.insert(strPlsTitle);
-    }
-    
-    // clear lvt_all
-    lvt_selected.clear_items();
-		
-		b_sel_changed = true;
+  std::cout << "Info:" << __PRETTY_FUNCTION__ << std::endl;
+
+  // copy all playlists from lvt_selected to lvr_all
+  std::string strPlsTitle;
+  for (const auto Row : lvt_selected.get_model()->children())
+  {
+      (*Row).get_value(0, strPlsTitle);
+      lvt_all.append(strPlsTitle);
+      set_pls_removed.insert(strPlsTitle);
+  }
+
+  // clear lvt_all
+  lvt_selected.clear_items();
+
+  b_sel_changed = true;
 }
 
 void
