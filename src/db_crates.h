@@ -199,6 +199,7 @@ public:
    */
   void write_lparams_file();
   
+  
 private:
   void parse_xwaxdb_line(const std::string& line);
   void parse_cratedb_line(const std::string& line);
