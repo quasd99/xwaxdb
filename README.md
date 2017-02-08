@@ -28,3 +28,5 @@ done < $F_XWAXDB_LPARAMS
 
 xwax -k -m 5 -r 44100 -t mixvibes_v2 -j Deck_A -j Deck_B -s $LIBRARY_SCANNER $CRATES
 ```
+
+![screenshot](http://www.soundiction.de/images/xwaxdb.png)
