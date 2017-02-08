@@ -485,3 +485,27 @@ db_crates::write_dbfiles()
 		F.close();
 	}
 }
+
+void
+db_crates::write_lparams_file()
+{
+  std::string Path = str_path_application + "/xwax_lparam.lst";
+  std::ofstream F(Path);
+	
+  if (!F) 
+  {
+    std::cerr << "ERR:" << __PRETTY_FUNCTION__
+      << ":cannot open:"
+      << Path
+      << std::endl;
+    return;
+  }
+
+	for (const auto Crate : v_crates)
+	{
+		F << Crate.name_uniq << "\n";
+	}
+	
+	F.close();
+}
+

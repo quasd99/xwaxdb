@@ -140,6 +140,8 @@ int run_cli_mode(bool b_bpmtag = false)
 	ptrXdb->write_xwax_db();
 	ptrXdb->write_crates_db();
 	ptrXdb->write_dbfiles();
+	ptrXdb->write_lparams_file();
+	
 	
 	// summary
 
