@@ -476,8 +476,10 @@ db_crates::write_dbfiles()
 				<< mDat["artist"] << '\t'
 				<< mDat["title"] << '|'
 				<< mDat["album"] << '|'
-				<< mDat["year"] << "|R"
-				<< mDat["rating"] << '\t'
+				<< mDat["year"] 
+        // << "|R"
+				// << mDat["rating"] 
+        << '\t'
 				<< mDat["bpm"]
 				<< std::endl;
 		}
