@@ -4,6 +4,7 @@
 #include "uiprogressdialog.h"
 #include "uisettingsdialog.h"
 
+#include <fstream>
 #include <iostream>
 #include <thread>
 
@@ -73,9 +74,9 @@ UiMainWindow::init_session()
 {
 	std::cout << "Info:" << __PRETTY_FUNCTION__ << std::endl;
 	
-	std::string strPathApp = 
+	path_application = 
 		quasd::settings::get_path_userhome() + '/' + ".config/quasd/xwaxdb";
-	settings.set_path_application(strPathApp);
+	settings.set_path_application(path_application);
 	settings.set_filename_settings("xwaxdb.settings");
 	if ( !settings.parse_file_settings() )
 	{
@@ -85,36 +86,31 @@ UiMainWindow::init_session()
 			<< std::endl;
 		return false;
 	}
-
+  else
+  {
+    std::cout << "settings:" << std::endl;
+    for ( const auto Key : settings.get_section_data("general") )
+    {
+      std::cout << Key.first << "=" << Key.second << std::endl;
+    }
+  }
+  
 	ptr_xdb = std::shared_ptr<xwaxdb::db_crates>(new xwaxdb::db_crates);
-	ptr_xdb->set_path_application(strPathApp);	
+	ptr_xdb->set_path_application(path_application);	
 	ptr_xdb->set_check_bpm(true);
 	if ( !ptr_xdb->read_xwax_db() )
 	{
 		std::cerr << "ERR:" << __PRETTY_FUNCTION__ 
 			<< ":cannot read:"
-			<< strPathApp << "/xwax.db"
+			<< path_application << "/xwax.db"
 			<< std::endl;
 		return false;
 	}
 	ptr_xdb->read_crates_db();
 
-	if ( settings.get_section_value("general", "crate_audiofiles") == "on"
-			 || settings.get_section_value("general", "crate_pls") != "on" )
-	{
-		std::string pathCrate = 
-			settings.get_section_value("general", "path_crate");	
-
-		if ( pathCrate.empty() )
-		{
-			std::cerr << "ERR:" << __PRETTY_FUNCTION__
-				<< ":path_crate not set"
-				<< std::endl;
-			return false;
-		}
-		
-		ptr_xdb->set_path_crate(pathCrate);
-	}
+  std::string pathCrate = settings.get_section_value("general", "path_crate");			
+  ptr_xdb->set_path_crate(pathCrate);
+	
 	
 	if ( settings.get_section_value("general", "crate_audiofiles") == "on" )
 	{
@@ -131,13 +127,20 @@ UiMainWindow::init_session()
 	return true;
 }
 	
-
-
 void
 UiMainWindow::init_gui_gmbrc()
 {
 	c_gmbrc.set_xdb(ptr_xdb);
-	c_gmbrc.use_gmbrc_stdpath();
+  std::string gmbrc_path = settings.get_section_value("general", "gmbrc_path");
+  if ( gmbrc_path == "%std%")
+  {
+    c_gmbrc.use_gmbrc_stdpath();
+  }
+  else
+  {
+    c_gmbrc.set_gmbrc_path(gmbrc_path);
+  }
+	
 	if ( !c_gmbrc.init_gmbrc() )
 	{
 		std::cerr << "ERR:" << __PRETTY_FUNCTION__
@@ -205,7 +208,7 @@ UiMainWindow::on_btn_settings()
 	auto builder = Gtk::Builder::create();
 	try
 	{
-			builder->add_from_file("src/uisettingsdialog.ui");
+    builder->add_from_file("src/uisettingsdialog.ui");
 	}
 	catch(const Glib::FileError& ex)
 	{
@@ -225,9 +228,15 @@ UiMainWindow::on_btn_settings()
 
 	UiSettingsDialog *dlg = nullptr;
 	builder->get_widget_derived("dlg_settings", dlg);
+  
 	if ( dlg )
 	{
-		dlg->exec();
+    init_settings_ui(dlg);
+		if ( dlg->exec() )
+    {
+      process_settings_ui(dlg);
+      write_settings_file();
+    }
 	}
 	else
 	{
@@ -238,6 +247,145 @@ UiMainWindow::on_btn_settings()
     
 	delete dlg;
 }
+
+void
+UiMainWindow::init_settings_ui(UiSettingsDialog *dlg)
+{
+  if ( settings.get_section_value("general", "crate_gmbrc") == "on" )
+  {
+    dlg->cbtn_gmbrc->set_active(true);
+  }
+  else
+  {
+    dlg->cbtn_gmbrc->set_active(false);
+  }
+  
+  std::string gmbrc_path = settings.get_section_value("general", "gmbrc_path");
+  if ( gmbrc_path == "%std%" )
+  {
+    dlg->rbtn_std_gmbrc->set_active(true);
+    dlg->entry_custom_gmbrc->delete_text(0, -1);
+  }
+  else
+  {
+    dlg->rbtn_std_gmbrc->set_active(false);
+    dlg->entry_custom_gmbrc->set_text(gmbrc_path);
+  }
+  
+  if ( settings.get_section_value("general", "crate_audiofiles") == "on" )
+  {
+    dlg->cbtn_af->set_active(true);
+  }
+  else
+  {
+    dlg->cbtn_af->set_active(false);
+  }
+
+  if ( settings.get_section_value("general", "crate_pls") == "on" )
+  {
+    dlg->cbtn_pls->set_active(true);
+  }
+  else
+  {
+    dlg->cbtn_pls->set_active(false);
+  }
+  
+  std::string path_crate = settings.get_section_value("general", "path_crate");
+  dlg->entry_crates_path->set_text(path_crate);
+  
+  if ( settings.get_section_value("general", "scan_bpm") == "on" )
+  {
+    dlg->cbtn_bpm_scan->set_active(true);
+  }
+  else
+  {
+    dlg->cbtn_bpm_scan->set_active(false);
+  }
+}
+
+void
+UiMainWindow::process_settings_ui(UiSettingsDialog* dlg)
+{
+  if ( dlg->cbtn_gmbrc->get_active() )
+  {
+    settings.set_section_value("general", "crate_gmbrc", "on");
+  }
+  else
+  {
+    settings.set_section_value("general", "crate_gmbrc", "off");
+  }
+  
+  if ( dlg->rbtn_std_gmbrc->get_active() )
+  {
+    settings.set_section_value("general", "gmbrc_path", "%std%");
+  }
+  else
+  {
+    std::string gmbrc_path = dlg->entry_custom_gmbrc->get_text();
+    settings.set_section_value("general", "gmbrc_path", gmbrc_path);
+  }
+  
+  if ( dlg->cbtn_af->get_active() )
+  {
+    settings.set_section_value("general", "crate_audiofiles", "on");
+  }
+  else
+  {
+    settings.set_section_value("general", "crate_audiofiles", "off");
+  }
+  
+  if ( dlg->cbtn_pls->get_active() )
+  {
+    settings.set_section_value("general", "crate_pls", "on");
+  }
+  else
+  {
+    settings.set_section_value("general", "crate_pls", "off");
+  }
+  
+  std::string path_crate = dlg->entry_crates_path->get_text();
+  settings.set_section_value("general", "path_crate", path_crate);
+  
+  if ( dlg->cbtn_bpm_scan->get_active() )
+  {
+    settings.set_section_value("general", "scan_bpm", "on");
+  }
+  else
+  {
+    settings.set_section_value("general", "scan_bpm", "off");
+  }  
+}
+
+void
+UiMainWindow::write_settings_file()
+{
+	std::string Path = path_application + "/xwaxdb.settings";
+
+  std::ofstream F(Path);
+  if ( !F )
+  {
+    std::cerr << "ERR:" << __PRETTY_FUNCTION__
+      << ":cannot create:"
+      << Path
+      << std::endl;
+    return;
+  }
+  
+  F << "######################" << std::endl
+    << "# xwaxdb config file #" << std::endl
+    << "######################" << std::endl
+    << std::endl
+    << "[general]"
+    << std::endl;
+  
+  for ( const auto Key : settings.get_section_data("general") )
+  {
+    F << Key.first << "=" << Key.second << std::endl;
+  }
+  
+  F.close();
+}
+
 
 void
 UiMainWindow::on_btn_export()

@@ -52,12 +52,29 @@ settings::get_section_value(const std::string& section, const std::string& key)
     // it.second = std::pair<std::string, std::string>
     if ( it->second.first == key ) // find key
     {
-        return it->second.second;  // return value
+      return it->second.second;  // return value
     }
   }
 
   return std::string{""}; // failed
 }
+
+void
+settings::set_section_value(const std::string& section, const std::string& key, 
+                            const std::string& value)
+{
+  auto it_r = map_settings.equal_range(section);      // get section
+  for ( auto it = it_r.first; it != it_r.second; it++ ) // iterate section
+  {
+    // it.second = std::pair<std::string, std::string>
+    if ( it->second.first == key ) // find key
+    {
+        it->second.second = value;  // return value
+        break;
+    }
+  }  
+}
+
 
 std::set<std::string>
 settings::get_sections()

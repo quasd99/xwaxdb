@@ -11,6 +11,7 @@
 #include "src/uigmbrc.h"
 #include "src/uicrates.h"
 #include "src/settings.h"
+#include "src/uisettingsdialog.h"
 
 class UiMainWindow : public Gtk::Window
 {
@@ -48,6 +49,7 @@ public:
     //void init_gui_playlists();
     
 private:
+  std::string path_application;
 protected:
     bool slot_app_quit(GdkEventAny* event);
     
@@ -56,6 +58,9 @@ protected:
     void on_btn_settings();
     void on_btn_export();
     
+    void init_settings_ui( UiSettingsDialog *dlg );
+    void process_settings_ui( UiSettingsDialog *dlg );
+    void write_settings_file();
     
     // notebook
     void on_notebook_switch_page(Gtk::Widget* page, guint page_num);

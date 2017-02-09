@@ -58,7 +58,17 @@ public:
      * @return std::string value
      */
     std::string get_section_value(const std::string& section,
-                                         const std::string& key);
+                                  const std::string& key);
+
+    /**
+     * @brief Set section value
+     * @param std::string section
+     * @param std::string key
+     * @param std::string value
+     */    
+    void set_section_value(const std::string& section,
+                           const std::string& key,
+                           const std::string& value);
     
     /**
      * @brief If a simple settings-file is used without sections, use this

@@ -106,7 +106,17 @@ int run_cli_mode(bool b_bpmtag = false)
 	{
 		xwaxdb::crate_gmbrc c_gmbrc;
 		c_gmbrc.set_xdb(ptrXdb);
-		c_gmbrc.use_gmbrc_stdpath();
+    
+    std::string gmbrc_path = S.get_section_value("general", "gmbrc_path");
+    if ( gmbrc_path == "%std%")
+    {
+      c_gmbrc.use_gmbrc_stdpath();
+    }
+    else
+    {
+      c_gmbrc.set_gmbrc_path(gmbrc_path);
+    }
+
 		if ( !c_gmbrc.init_gmbrc() )
 		{
 			std::cerr << "ERR:" << __PRETTY_FUNCTION__

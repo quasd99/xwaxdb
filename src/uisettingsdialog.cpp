@@ -22,7 +22,7 @@ UiSettingsDialog::UiSettingsDialog(BaseObjectType* cobject,
 	add_button(Gtk::Stock::CANCEL, 0);
 }
 
-void
+bool
 UiSettingsDialog::exec()
 {
 	int status = run();
@@ -32,9 +32,12 @@ UiSettingsDialog::exec()
 			// cancel
 			break;
 		case 1:
-			// TODO: Save
+			// TODO: Validation
+      return true;
 			break;
 	}
+  
+  return false;
 }
 
 
